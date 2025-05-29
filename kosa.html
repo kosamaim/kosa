@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>면세유 가격표시판 자동 생성기</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #fefefe; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 10px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input { width: 70px; text-align: right; }
+    input[disabled] { background-color: #eee; }
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+      width: 120px;
+      height: 40px;
+    }
+    h2, h3 { margin-top: 30px; }
+
+    .left-btn {
+      display: inline-block;
+      margin: 30px 0;
+      padding: 20px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      background-color: #ff9900;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .left-btn:hover {
+      background-color: #e67e00;
+    }
+
+    .note {
+      color: red;
+      font-weight: bold;
+    }
+
+    .price-box {
+      width: 120px;
+      height: 40px;
+      display: inline-block;
+      line-height: 40px;
+      background-color: yellow;
+      font-weight: bold;
+    }
+
+    .button-container {
+      text-align: left;
+    }
+
+    .copy-info {
+      color: green;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🛢️ 면세유 가격표시판 작성요령</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">유종</th>
+      <th rowspan="2">정상가격</th>
+      <th colspan="5">세금 항목</th>
+      <th rowspan="2">세금합계</th>
+      <th rowspan="2">면세유판매가격</th>
+      <th rowspan="2">기타(배달료)</th>
+    </tr>
+    <tr>
+      <th>교통세</th>
+      <th>교육세</th>
+      <th>주행세</th>
+      <th>개별소비세</th>
+      <th>부가세</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>휘발유</td>
+      <td><input id="price_gasoline" value="1800" /></td>
+      <td><input id="tax1_gasoline" value="476" disabled /></td>
+      <td><input id="tax2_gasoline" value="71.4" disabled /></td>
+      <td><input id="tax3_gasoline" value="123.76" disabled /></td>
+      <td><input id="tax4_gasoline" value="0" disabled /></td>
+      <td><input id="tax5_gasoline" value="0" disabled /></td>
+      <td id="total_tax_gasoline">-</td>
+      <td id="price_nontax_gasoline">-</td>
+      <td><input id="extra_gasoline" value="30" /></td>
+    </tr>
+    <tr>
+      <td>경유</td>
+      <td><input id="price_diesel" value="1400" /></td>
+      <td><input id="tax1_diesel" value="319" disabled /></td>
+      <td><input id="tax2_diesel" value="47.85" disabled /></td>
+      <td><input id="tax3_diesel" value="82.94" disabled /></td>
+      <td><input id="tax4_diesel" value="0" disabled /></td>
+      <td><input id="tax5_diesel" value="0" disabled /></td>
+      <td id="total_tax_diesel">-</td>
+      <td id="price_nontax_diesel">-</td>
+      <td><input id="extra_diesel" value="30" /></td>
+    </tr>
+    <tr>
+      <td>등유</td>
+      <td><input id="price_kerosene" value="1200" /></td>
+      <td><input id="tax1_kerosene" value="0" disabled /></td>
+      <td><input id="tax2_kerosene" value="9.45" disabled /></td>
+      <td><input id="tax3_kerosene" value="0" disabled /></td>
+      <td><input id="tax4_kerosene" value="63" disabled /></td>
+      <td><input id="tax5_kerosene" value="0" disabled /></td>
+      <td id="total_tax_kerosene">-</td>
+      <td id="price_nontax_kerosene">-</td>
+      <td><input id="extra_kerosene" value="30" /></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 계산 버튼 -->
+<div class="button-container">
+  <button class="left-btn" onclick="calculate()">💡 실제 면세유 판매가격 계산</button>
+</div>
+
+<h3>📊 실제 면세유 판매가격</h3>
+
+<p class="note">
+  주1) 휘발유는 이동판매 불가하므로, 배달료가 아닌 자금이자(유류세, 부가가치세를 나중에 환급 또는 공제) 비용 등으로 반영.<br>
+  주2) 기타(배달료등)비용은 각 개별주유소의 상황에 맞게 게시하시면 됩니다.(예:정액000원 또는 거리별 000원/km)<br>
+  주3) 면세유 가격표시판 글자크기(의무)<br>
+  -가로 3.5cm(숫자1은 제외), 세로 4.5cm, 굵기 0.7cm (옆의 기준보다 작아서는 안됨)<br>
+  주4) 면세유 가격표시판은 사무실 외벽에 게시해야 함. (의무)
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>유종</th>
+      <th class="highlight">실제 면세유 판매가격</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>휘발유</td>
+      <td id="final_gasoline" class="highlight">-</td>
+    </tr>
+    <tr>
+      <td>경유</td>
+      <td id="final_diesel" class="highlight">-</td>
+    </tr>
+    <tr>
+      <td>등유</td>
+      <td id="final_kerosene" class="highlight">-</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>📋 면세유 가격표시판</h3>
+<table>
+  <thead>
+    <tr>
+      <th>유 종</th>
+      <th>정상가격</th>
+      <th>면세액</th>
+      <th>면세유판매가격</th>
+      <th>기타(배달료 등)</th>
+      <th class="highlight">실제 면세유 판매가격</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>휘발유</td>
+      <td id="table_price_gasoline">-</td>
+      <td id="table_tax_gasoline">-</td>
+      <td id="table_nontax_gasoline">-</td>
+      <td id="table_extra_gasoline">-</td>
+      <td id="table_final_gasoline" class="highlight">-</td>
+    </tr>
+    <tr>
+      <td>경유</td>
+      <td id="table_price_diesel">-</td>
+      <td id="table_tax_diesel">-</td>
+      <td id="table_nontax_diesel">-</td>
+      <td id="table_extra_diesel">-</td>
+      <td id="table_final_diesel" class="highlight">-</td>
+    </tr>
+    <tr>
+      <td>등유</td>
+      <td id="table_price_kerosene">-</td>
+      <td id="table_tax_kerosene">-</td>
+      <td id="table_nontax_kerosene">-</td>
+      <td id="table_extra_kerosene">-</td>
+      <td id="table_final_kerosene" class="highlight">-</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- 복사 버튼 -->
+<div class="button-container">
+  <button class="left-btn" onclick="copyTable()">📋 가격표시판 복사</button>
+  <p class="copy-info" id="copyStatus"></p>
+</div>
+
+<script>
+function calculate() {
+  const fuels = ['gasoline', 'diesel', 'kerosene'];
+
+  fuels.forEach(fuel => {
+    const price = parseFloat(document.getElementById(`price_${fuel}`).value);
+    const t1 = parseFloat(document.getElementById(`tax1_${fuel}`).value) || 0;
+    const t2 = parseFloat(document.getElementById(`tax2_${fuel}`).value) || 0;
+    const t3 = parseFloat(document.getElementById(`tax3_${fuel}`).value) || 0;
+    const t4 = parseFloat(document.getElementById(`tax4_${fuel}`).value) || 0;
+    const t5 = +(price * 10 / 110).toFixed(2); // 부가세 역산
+    const extra = parseFloat(document.getElementById(`extra_${fuel}`).value) || 0;
+
+    const totalTax = t1 + t2 + t3 + t4 + t5;
+    const nontaxPrice = price - totalTax;
+    const finalPrice = Math.round(nontaxPrice + extra);
+
+    document.getElementById(`tax5_${fuel}`).value = t5;
+    document.getElementById(`total_tax_${fuel}`).textContent = Math.round(totalTax);
+    document.getElementById(`price_nontax_${fuel}`).textContent = Math.round(nontaxPrice);
+    document.getElementById(`final_${fuel}`).textContent = finalPrice + " 원";
+
+    document.getElementById(`table_price_${fuel}`).textContent = price;
+    document.getElementById(`table_tax_${fuel}`).textContent = Math.round(totalTax);
+    document.getElementById(`table_nontax_${fuel}`).textContent = Math.round(nontaxPrice);
+    document.getElementById(`table_extra_${fuel}`).textContent = extra;
+    document.getElementById(`table_final_${fuel}`).textContent = finalPrice + " 원";
+  });
+}
+
+function copyTable() {
+  const table = document.querySelector("h3 + table"); // 실제 면세유 판매가격 표
+  const range = document.createRange();
+  range.selectNode(table);
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      document.getElementById("copyStatus").textContent = "✅ 복사되었습니다. 엑셀에 붙여넣기(Ctrl+V) 하세요.";
+    } else {
+      document.getElementById("copyStatus").textContent = "❌ 복사 실패. 수동으로 복사해주세요.";
+    }
+  } catch (err) {
+    document.getElementById("copyStatus").textContent = "❌ 복사 중 오류가 발생했습니다.";
+  }
+  selection.removeAllRanges();
+}
+</script>
+
+</body>
+</html>
